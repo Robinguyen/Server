@@ -27,15 +27,9 @@ router.post("/create-node", async(req, res)=>{
     }
 })
 //get data node
-router.post("/get-node", async(req, res)=>{
+router.post("/get-node", async (req, res)=>{
     try {
-        const {node_id} = req.body;
-        //check node id
-        const c_node = await pool.query(`SELECT node_name FROM node_data WHERE node_id = '${node_id}';`);
-        if(c_node.rows.length==0){
-            return res.status(401).send("Error node id");
-        }
-        const get_node =  await pool.query(`SELECT node_name, address FROM node_data WHERE node_id = '${node_id}';`);
+        const get_node =  await pool.query(`SELECT node_name as name, address as addr, status as stat, account.username as user FROM (node_data natural join account);`);
         return res.status(200).send(get_node.rows);
     } catch (error) {
         return res.status(401).send("Server Error");
