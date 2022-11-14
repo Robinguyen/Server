@@ -14,8 +14,8 @@ app.use("/data", require("./routes/datatable"));
 app.use("/insert", require("./testData/data"))
 
 
-console.log(Math.round((28 + Math.random() * (30 - 28))*100)/100)
-app.get('/test', (req, res)=>{
+app.post('/test', async (req, res)=>{
+    console.log("connect 01")
     res.send("Hello word");
 })
 app.listen(PORT, ()=>{
