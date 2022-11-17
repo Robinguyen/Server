@@ -1,6 +1,5 @@
 const { json } = require('express');
 const pool = require('../db');
-
 const router  = require('express').Router();
 //realtime
 router.post("/upload-data", async(req,res)=>{
@@ -32,10 +31,7 @@ router.post("/upload-data", async(req,res)=>{
             
                              return res.status(200).send("ok");
                             }
-          
-        }
-       
-
+        } 
     } catch (error) {
         return res.status(401).send("Server Erorr");        
     }
