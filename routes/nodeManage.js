@@ -6,9 +6,9 @@ const authorization  = require("../middleware/authorization");
 router.post("/create-node", async(req, res)=>{
     try {
 
-        const {node_name, address, account_id} = req.body;
+        const {node_name, address, account} = req.body;
         //check data respone
-        if(node_name=='null' || address == 'null' || account_id =='null'){
+        if(node_name=='null' || address == 'null' || account =='null'){
             return res.status(401).send("Error data")
         }
         //check exits node name
@@ -16,7 +16,11 @@ router.post("/create-node", async(req, res)=>{
         if(c_nodeName.rows.length>0){
             return res.status(401).send("Node name exits");
         }
-       const node_id  = await pool.query(`INSERT INTO node_data(node_name, address, account_id) VALUES ('${node_name}','${address}','${account_id}') RETURNING node_id;`);
+        const account_id = await pool.query(`SELECT account_id FROM account WHERE username='${account}';`);
+        if(account_id.rows.length==0){
+            return res.status(401).send("Admin account does not exits!");
+        }
+       const node_id  = await pool.query(`INSERT INTO node_data(node_name, address, account_id) VALUES ('${node_name}','${address}','${account_id.rows[0].account_id}') RETURNING node_id;`);
         const realtime_name = "dt_" + (node_id.rows[0].node_id).replaceAll('-', '_');
         await pool.query(`CREATE TABLE ${realtime_name} (data_id uuid default uuid_generate_v4() not null, 
                         node_id uuid not null, temparature real[][] not null,humidity real [][] not null, 
@@ -30,15 +34,28 @@ router.post("/create-node", async(req, res)=>{
 //update node
 router.post("/node-update", async(req, res)=>{
     try {
-        const {node_id, node_name, address} = req.body;
+        const {node_id,node_name, address} = req.body;
         //check node_id
-        const c_nodeid = await pool.query(`SELECT node_name FROM node_data WHERE node_id = '${node_id}';`);
+        const c_nodeid = await pool.query(`SELECT node_id FROM node_data WHERE node_id = '${node_id}';`);
         if(c_nodeid.rowCount.length ==0){
             return res.status(401).send("Error node ID");
         }
-        await pool.query(`UPDATE node_data SET node_name = '${node_name}', address = '${address}';`);
+        await pool.query(`UPDATE node_data SET node_name = '${node_name}', address = '${address}' WHERE node_id = '${c_nodeid.rows[0].node_id}';`);
         return res.status(200).send("Update success");
 
+    } catch (error) {
+        return res.status(401).send("Server Error");
+    }
+});
+//return node_id
+router.post("/get-id", async(req,res)=>{
+    try {
+        const {node_name}= req.body;
+        const node_id = await pool.query(`SELECT node_id FROM node_data  WHERE node_name = '${node_name}';`);
+        if(node_id.rows.length==0){
+            return res.status(401).send("node name does not exits");
+        }
+        return res.status(200).send(node_id.rows[0].node_id);
     } catch (error) {
         return res.status(401).send("Server Error");
     }
@@ -46,13 +63,15 @@ router.post("/node-update", async(req, res)=>{
 //delete node
 router.post("/delete-node", async(req, res)=>{
     try {
-        const {node_id} = req.body;
+        const {node_name} = req.body;
         //check node_id
-        const c_nodeid = await pool.query(`SELECT node_id FROM node_data WHERE node_id = '${node_id}';`);
+        const c_nodeid = await pool.query(`SELECT node_id FROM node_data WHERE node_name = '${node_name}';`);
         if(c_nodeid.rowCount.length ==0){
             return res.status(401).send("Error node id");
         }
-        await pool.query(`DELETE FROM node_data WHERE node_id = '${node_id}';`);
+        await pool.query(`DELETE FROM node_data WHERE node_id = '${c_nodeid.rows[0].node_id}';`);
+        const tb_realtime = "dt_" + (c_nodeid.rows[0].node_id).replaceAll('-', '_');
+        await pool.query(`DROP TABLE ${tb_realtime};`);
         return res.status(200).send("Delete success");
     } catch (error) {
         return res.status(401).send("Server Error");

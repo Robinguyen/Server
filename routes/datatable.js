@@ -206,6 +206,15 @@ router.post("/search-box", async(req,res)=>{
     }
 });
 
+//export all data
+router.post("/export", async (req, res)=>{
+    try {
+        
+    } catch (err) {
+        return res.status(401).send("Server Error");
+    }
+})
+
 
 
 module.exports = router;
