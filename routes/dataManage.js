@@ -11,6 +11,7 @@ router.post("/data", async (req, res)=>{
         }
         //get node_id
         const node_id = await pool.query(`SELECT node_id as ndid FROM node_data WHERE node_name = '${node_name}';`);
+        console.log(node_id.rows.length)
         const name_table = "dt_" + (node_id.rows[0].ndid).replaceAll('-','_');
         if(status=='True'){
             if(starttime == 'null' && endtime == 'null'){

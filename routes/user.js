@@ -27,16 +27,16 @@ router.post("/register", validInfo, async(req, res)=>{
         return res.status(401).send("Server Error");
     }
 });
-
 //login user
 router.post("/login", async(req,res)=>{
     try {
-        const {username, password}  = req.body;
-        const user_account = await pool.query(`SELECT username FROM account WHERE username = '${username}';`);
+        const {email, password}  = req.body;
+        const user_account = await pool.query(`SELECT username, password FROM account WHERE email = '${email}';`);
         if(user_account.rows.length===0){
             return res.status(401).send({jwtToken: null, user: null, message: "Login fail"});
         }
         //check password database
+       
         const validPass = await bcrypt.compare(password, user_account.rows[0].password);
         if(!validPass){
             return res.status(401).send({jwtToken: null, user: null, message: "Fail password"});
