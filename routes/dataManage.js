@@ -9,6 +9,7 @@ router.post("/data", async (req, res)=>{
         if(node_name == 'null'){
             return res.status(401).send("No data");
         }
+        console.log("aa")
         //get node_id
         const node_id = await pool.query(`SELECT node_id as ndid FROM node_data WHERE node_name = '${node_name}';`);
         console.log(node_id.rows.length)

@@ -32,6 +32,7 @@ router.post("/login", async(req,res)=>{
     try {
         const {email, password}  = req.body;
         const user_account = await pool.query(`SELECT username, password FROM account WHERE email = '${email}';`);
+        console.log(user_account.rows.length)
         if(user_account.rows.length===0){
             return res.status(401).send({jwtToken: null, user: null, message: "Login fail"});
         }
